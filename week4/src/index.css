@@ -13,6 +13,8 @@
   --card: #ffffff; /* хайрцгийн дэвсгэр */
   --red: #c0392b; /* алдааны өнгө */
   --green: #1e8e5a; /* амжилтын өнгө */
+  --code-bg: #1e1e1e; /* эх кодын хайрцгийн дэвсгэр (бараан) */
+  --code-head: #2b3138; /* эх кодын толгой хэсгийн дэвсгэр */
 }
 
 /* Бүх элементэд: padding ба border нь өргөн ДОТОР тооцогдоно. */
@@ -215,4 +217,209 @@ select {
 /* Жагсаалтын хэв. */
 ul {
   padding-left: 18px;
+}
+
+/* ---------- Эх кодын хэсэг (CodeBlock.jsx) ---------- */
+/* Энэ хэсэг болон доорх "Амьд засвар" хэсэг долоо хоног бүрийн төсөлд ижил байна —
+   "эх код харах" ба "код засаж, DOM-оо шууд өөрчлөх" 2 чадварыг хангана. */
+
+/* .code-block — дасгалын доор гардаг бараан "код хайрцаг". */
+.code-block {
+  margin-top: 16px;
+  border-radius: 12px;
+  overflow: hidden; /* доторх элементүүд булангаар халихгүй */
+  background: var(--code-bg);
+}
+
+/* .code-head — файлын нэр ба товчнуудыг багтаах толгой. */
+.code-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--code-head);
+  color: #cfd8e3;
+  font-size: 13px;
+}
+
+/* .code-file — аль файлын код харагдаж байгааг мэдэгдэх нэр. */
+.code-file {
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-weight: 600;
+}
+
+.code-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Толгой доторх товчнууд харанхуй дэвсгэрт тохирно (ерөнхий button хэвээ дарна). */
+.code-head button {
+  padding: 3px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  background: transparent;
+  color: #cfd8e3;
+  border-color: #3d4a57;
+}
+
+.code-head button:hover:not(:disabled) {
+  background: #3a4753;
+  color: #ffffff;
+  border-color: #55677a;
+}
+
+/* .code — эх кодын хэсэг. max-height-аас урт бол дотроо гүйлгэнэ. */
+.code {
+  margin: 0;
+  padding: 12px 0;
+  max-height: 480px;
+  overflow: auto;
+  font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #d4d4d4;
+}
+
+/* .code-line — нэг мөр: зүүн талд дугаар, баруун талд код. */
+.code-line {
+  display: flex;
+  gap: 12px;
+}
+
+/* .code-num — мөрийн дугаар. user-select: none → хуулах үед дугаар орохгүй. */
+.code-num {
+  flex: 0 0 38px;
+  text-align: right;
+  color: #7f8c99;
+  user-select: none;
+}
+
+/* .code-text — мөр доторх код. Урт мөр доош шилжинэ (хажуу тийш гүйлгэхгүй). */
+.code-text {
+  flex: 1 1 auto;
+  padding-right: 14px;
+  white-space: pre-wrap; /* зайг хадгалж, мөр дуусахад шилжүүлнэ */
+  overflow-wrap: anywhere; /* маш урт үг/мөрийг албадан хуваана */
+}
+
+/* Токен бүрийн өнгө (VS Code-ийн бараан сэдэвтэй төстэй). */
+.tok-comment {
+  color: #6a9955; /* // тайлбар */
+}
+
+.tok-string {
+  color: #ce9178; /* '...' текст */
+}
+
+.tok-keyword {
+  color: #c586c0; /* const, return, import ... */
+}
+
+.tok-hook {
+  color: #dcdcaa; /* useState, useEffect ... */
+}
+
+.tok-tag {
+  color: #569cd6; /* <div>, </p>, /> */
+}
+
+.tok-number {
+  color: #b5cea8; /* тоо */
+}
+
+.tok-op {
+  color: #d4d4d4; /* => */
+}
+
+/* .code-editor — "Засварлах" горимд гардаг текст хайрцаг (textarea). */
+.code-editor {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  max-height: 520px;
+  padding: 12px 14px;
+  border: 0; /* хайрцаг дотроо байгаа тул тусдаа хүрээ хэрэггүй */
+  border-radius: 0;
+  resize: vertical; /* доод ирмэгээр чирж өндрийг өөрчилж болно */
+  background: var(--code-bg);
+  color: #d4d4d4;
+  font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre; /* мөр шилжүүлэхгүй — кодын хэлбэр хэвээр */
+  overflow: auto;
+}
+
+/* Фокус байгааг дотоод цэнхэр хүрээгээр мэдэгдэнэ. */
+.code-editor:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+/* .code-hint — засварлагчийн доорх зөвлөмж текст. */
+.code-hint {
+  margin: 0;
+  padding: 10px 14px 12px;
+  border-top: 1px solid #2b3138;
+  color: #9fb0c0;
+  font-size: 12.5px;
+}
+
+.code-hint strong {
+  color: #dcdcaa; /* тодруулсан хугацаа (0.6 секунд) */
+}
+
+/* ---------- Амьд засвар (засварласан код) ---------- */
+
+/* .live-bar — дээрх демо "таны засвар" болсныг мэдэгдэх мөр. */
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border: 1px solid #bcd9ec;
+  border-radius: 10px;
+  background: #eaf4fb;
+  color: var(--blue-dark);
+  font-size: 13px;
+}
+
+/* .live-dot — амьд байгааг илтгэх цэнхэр цэг. */
+.live-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+/* .live-error — алдааны хайрцаг (.card-ийг дарж бичнэ). */
+.live-error {
+  border-color: #e7bdb7;
+  background: #fdf5f4;
+}
+
+.live-error h2 {
+  color: var(--red);
+  font-size: 16px;
+}
+
+/* .live-error pre — алдааны мессеж (урт мөр доош шилжинэ). */
+.live-error pre {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #2b1f1e;
+  color: #ffd9d4;
+  font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 220px;
 }

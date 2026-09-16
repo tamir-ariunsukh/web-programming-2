@@ -457,3 +457,58 @@ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/shiftkey-desktop-archive-key
 
 sudo apt update
 sudo apt install -y github-desktop
+
+---
+
+## 13. VERCEL ДЭЭР АВТОМАТ DEPLOY (push бүрт)
+
+Энэ repo нь **нэг Vercel төсөл = нэг сайт** хэлбэрээр deploy болно. Сайтын бүтэц:
+
+```
+https://<төслийн-нэр>.vercel.app/         → эх хуудас (долоо хоногуудын холбоос)
+https://<төслийн-нэр>.vercel.app/week3/   → 3 дугаар долоо хоног
+https://<төслийн-нэр>.vercel.app/week4/   → 4 дүгээр долоо хоног
+```
+
+### 13.1. Нэг удаагийн тохиргоо (ойролцоогоор 5 минут)
+
+1. https://vercel.com → **Add New… → Project → Import Git Repository** →
+   `tamir-ariunsukh/web-programming-2`-г сонгоно (анх удаа GitHub эрх асууна).
+2. Тохиргоог **өөрчлөхгүй** үлдээнэ — бүгд repo доторх `vercel.json`-оос
+   уншигдана: Root Directory `./`, Build Command `npm run build`,
+   Output Directory `dist`, Framework Preset **Other**.
+3. **Deploy** дарна. Эхний deploy 1–3 минут үргэлжилнэ (долоо хоног бүрийн
+   `npm install` + `vite build` ажиллана).
+
+### 13.2. Push бүрт юу болох вэ
+
+| Үйлдэл | Үр дүн |
+| --- | --- |
+| `main` салаа руу push | **Production** deploy — үндсэн хаяг шинэчлэгдэнэ |
+| Бусад салаа эсвэл PR | **Preview** deploy — тухайн commit-ийн түр хаяг үүснэ |
+
+Өөрөөр хэлбэл `git push` хийснээс хойш 1–3 минутын дараа сайт автоматаар
+шинэчлэгдэнэ. Түүх, лог, алдаа: Vercel dashboard → **Deployments**.
+Токен, secret тохируулах шаардлагагүй (Vercel-ийн Git integration ашиглаж байна).
+
+### 13.3. Локал дээр угсарч турших
+
+```powershell
+Set-Location 'c:\Users\atamirpc\Documents\GitHub\web-programming-2'
+npm run build        # бүх weekN-ийг build хийж, dist/ дотор угсарна
+npm run preview      # http://localhost:4173 — угсарсан сайтыг үзнэ
+```
+
+- `npm run build:skip-install` — `node_modules` аль хэдийн байгаа үед хурдан build.
+- Угсарсан бүтэц: `dist/index.html` (эх хуудас), `dist/weekN/` (долоо хоног бүр).
+- `dist/` нь `.gitignore`-д байгаа тул commit-д орохгүй.
+
+### 13.4. Шинэ долоо хоног нэмэхэд Vercel дээр юу хийх вэ?
+
+**Юу ч хийхгүй.** `scripts/build-site.mjs` нь `weekN` хавтсуудыг автоматаар
+олж, тус бүрийг `--base=/weekN/` -ээр build хийгээд `/weekN/` зам дор угсарна.
+Зөвхөн `main` руу push хийхэд шинэ долоо хоног сайт дээр гарч ирнэ.
+
+> АНХААР (код бичихэд): дасгал дотор `public/` файлд хандахдаа **харьцангуй**
+> зам хэрэглэнэ — `fetch('students.json')` ✓, харин `fetch('/students.json')` ✗.
+> Учир нь сайт үндсэн хаяг дээр биш, **дэд замд** (`/week4/`) байрлана.

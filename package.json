@@ -1,0 +1,14 @@
+{
+  "name": "web-programming-2-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Web Programming II — бүх долоо хоногийн лабораторыг нэг статик сайт болгон угсарч, Vercel дээр автоматаар deploy хийнэ.",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "build:skip-install": "node scripts/build-site.mjs --skip-install",
+    "preview": "node scripts/serve-site.mjs"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

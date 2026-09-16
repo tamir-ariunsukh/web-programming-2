@@ -8,8 +8,12 @@
 // яагаад чухал вэ, "уралдааны нөхцөл" (race condition).
 //
 // ӨГӨГДЛИЙН ЭХ СУРВАЛЖ: week4/public/students.json файл.
-// Vite dev server нь public/ доторх файлуудыг '/' замаар шууд үзүүлдэг тул
-// fetch('/students.json') гэж дуудна (сервер, интернэт хэрэггүй).
+// Vite dev server нь public/ доторх файлуудыг шууд үзүүлдэг тул
+// fetch('students.json') гэж ХАРЬЦАНГУЙ замаар дуудна (сервер, интернэт хэрэггүй).
+// Яагаад харьцангуй вэ: энэ сайт үндсэн хаяг дээр биш, дэд замд (/week4/)
+// deploy болдог (AGENTS.md §10). '/students.json' гэсэн АБСОЛЮТ зам нь dev дээр
+// зөв боловч deploy дээр үндсэн хаягаас хайж, 404 болно. Харьцангуй зам хоёуланд
+// нь ижил ажиллана: dev дээр '/students.json', deploy дээр '/week4/students.json'.
 
 import { useEffect, useState } from 'react'
 
@@ -65,7 +69,7 @@ export default function FetchList() {
         // fetch(url, сонголтууд) — HTTP хүсэлт явуулна. Буцаах утга нь
         // Promise: await нь хариу ирэх хүртэл хүлээгээд response объектыг өгнө.
         // { signal: controller.signal } — цуцлах дохиог холбоно.
-        const response = await fetch('/students.json', { signal: controller.signal })
+        const response = await fetch('students.json', { signal: controller.signal })
 
         // response.ok — HTTP статус 200-299 хооронд бол true.
         // 404, 500 гэх мэт бол fetch ӨӨРӨӨ алдаа шиддэггүй тул бид шалгаж,

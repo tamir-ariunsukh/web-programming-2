@@ -32,8 +32,13 @@
 ```
 web-programming-2/
 ├─ README.md      # Долоо хоногуудын жагсаалт (хүнд зориулсан)
-├─ GITHUB.md      # git/gh тушаалын гарын авлага
+├─ GITHUB.md      # git/gh тушаалын гарын авлага + Vercel deploy (§13)
 ├─ AGENTS.md      # энэ файл (агентад зориулсан)
+├─ package.json   # ЗӨВХӨН deploy-ийн build script (долоо хоног бүр өөрийнхтэй)
+├─ vercel.json    # Vercel-ийн тохиргоо (framework: null, outputDirectory: dist)
+├─ scripts/
+│  ├─ build-site.mjs # Бүх weekN-ийг dist/weekN/ болгон угсарна
+│  └─ serve-site.mjs # Угсарсан сайтыг локал дээр үзүүлэх статик сервер
 ├─ week3/         # State ба үйл явдал (useState, үйл явдал, форм, нөхцөлт ба
 │                 # жагсаалтын дүрслэл, төлөв өргөх, localStorage)
 └─ week4/         # useEffect (mount/update/unmount, cleanup, fetch)
@@ -80,6 +85,8 @@ weekN/
 5. **README:** `weekN/README.md`-г 6-р хэсгийн бүтцээр бичнэ.
 6. **Root README:** "Долоо хоногууд" хүснэгтэд шинэ мөр нэмнэ.
 7. **Шалгаад** (7-р хэсэг) commit/push хийнэ — журмыг [`GITHUB.md`](GITHUB.md)-ээс.
+8. **Deploy:** нэмэлт зүйл шаардлагагүй — repo-ийн үндэс дээрх `npm run build`
+   нь шинэ `weekN`-ийг автоматаар олж, `/weekN/` зам дор угсарна (9-р хэсэг).
 
 ---
 
@@ -92,7 +99,7 @@ weekN/
 | Долоо хоног | 4.1 Эх код | 4.2 Амьд засвар |
 | --- | --- | --- |
 | `week3/` | ✅ бий | ✅ бий |
-| `week4/` | ❌ — нэмэх | ❌ — нэмэх |
+| `week4/` | ✅ бий | ✅ бий |
 
 ### 4.1. Дасгал бүрийн эх кодыг дэлгэцэн дээр харуулах
 
@@ -156,6 +163,9 @@ textarea (CodeBlock) ──0.6с debounce (useEffect + setTimeout)──▶ onRu
   TypeScript нэмэхгүй.
 - Өнгийг `index.css`-ийн `:root` хувьсагчаар солино; өмнөх долоо хоногийн хэв маягийг
   үргэлжлүүлнэ (шинээр зохиохгүй).
+- `public/` доторх файлд хандахдаа **харьцангуй зам** хэрэглэнэ:
+  `fetch('students.json')` ✓, харин `fetch('/students.json')` ✗ — сайт үндсэн хаяг
+  дээр биш, дэд замд (`/weekN/`) deploy болдог тул абсолют зам 404 болно (9-р хэсэг).
 
 ---
 
@@ -198,6 +208,10 @@ textarea (CodeBlock) ──0.6с debounce (useEffect + setTimeout)──▶ onRu
    - [ ] Дасгал солиод буцахад засвар хадгалагдсан, editor зөв текстээр эхэлсэн.
    - [ ] Console-д warning/error байхгүй (React DevTools-ийн мэдээллээс бусад).
    - [ ] Нарийн дэлгэцэд (`760px`-ээс доош) багтана.
+4. Repo-ийн үндэс дээр `npm run build` — бүх долоо хоногийг угсарч,
+   `dist/index.html` ба `dist/weekN/index.html` үүсгэнэ (`npm run preview` →
+   http://localhost:4173). Шинэ долоо хоног нэмсний дараа энийг ЗААВАЛ шалгана —
+   `--base=/weekN/` зөв эсэх, `/weekN/` замд asset ачаалагдах эсэх эндээс харагдана.
 
 ---
 
@@ -217,7 +231,24 @@ npm run preview    # http://localhost:4173
 
 ---
 
-## 9. Хийхгүй зүйлс
+## 9. Deploy (Vercel) — push бүрт автомат
+
+- Бүх долоо хоног **нэг Vercel төсөл, нэг сайт** болж deploy болно: `/` (эх
+  хуудас), `/week3/`, `/week4/`, ... — шинэ долоо хоног `/weekN/` зам дор нэмэгдэнэ.
+- Vercel нь repo-ийн үндэс дээр `npm run build` ажиллуулна → `scripts/build-site.mjs`
+  нь `weekN` хавтсуудыг автоматаар олж, тус бүрийг `--base=/weekN/` -ээр build
+  хийгээд `dist/weekN/` дотор байрлуулна.
+- Push бүрт: `main` → production, бусад салаа/PR → preview (Vercel-ийн Git
+  integration; токен, secret шаардлагагүй).
+- **Шинэ долоо хоног нэмэхэд Vercel дээр юу ч хийхгүй** — build script өөрөө
+  олно; зөвхөн `main` руу push хийнэ.
+- `scripts/`, `vercel.json`, root `package.json`-ийг устгах, сулруулахгүй;
+  долоо хоног бүр өөрийн `package.json`-той хэвээр (root нь зөвхөн угсарна).
+- Тохиргооны дэлгэрэнгүй, локал турших заавар: [`GITHUB.md`](GITHUB.md) §13.
+
+---
+
+## 10. Хийхгүй зүйлс
 
 - Тайлбарыг устгах/орчуулах, дасгалын кодыг «цэвэрлэх», богиносгох.
 - 4-р хэсгийн 2 чадварыг (эх код, амьд засвар) арилгах, идэвхгүй болгох, өөр
