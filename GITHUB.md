@@ -438,3 +438,22 @@ git push                            # 4. Илгээх
 git pull                            # 5. (өөр газар ажилласан бол) татах
 gh pr create --fill                 # 6. (том өөрчлөлт) PR үүсгэх
 ```
+
+
+
+
+command
+
+
+sudo apt update
+sudo apt install -y wget gpg
+
+wget -qO - https://packagecloud.io/shiftkey/desktop/gpgkey \
+  | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/shiftkey-desktop-archive-keyring.gpg > /dev/null
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/shiftkey-desktop-archive-keyring.gpg] https://packagecloud.io/shiftkey/desktop/any/ any main" \
+  | sudo tee /etc/apt/sources.list.d/packagecloud-shiftkey-desktop.list
+
+sudo apt update
+sudo apt install -y github-desktop
