@@ -109,6 +109,35 @@ function prepare(code) {
   return toLines(tokenize(code.replace(/\r\n?/g, '\n').replace(/\n$/, '')))
 }
 
+// renderLines — бэлдсэн мөрүүдийг ӨНГӨТЭЙ JSX болгон дүрслэнэ.
+// Нэг л функцийг 2 газарт ашиглана:
+//   1) унших харагдац (<pre className="code">),
+//   2) засварлагчийн доод давхарга (<pre className="code-editor-view">) —
+//      ингэснээр засварлаж байх үед ч кодын өнгө хэвээр харагдана.
+function renderLines(rows) {
+  return rows.map((tokens, lineIndex) => (
+    // key — мөрийн дугаар давтагдашгүй тул түүнийг ашиглана.
+    <span className="code-line" key={lineIndex}>
+      {/* Мөрийн дугаар (хуулах үед орохгүй — CSS-д user-select: none). */}
+      <span className="code-num">{lineIndex + 1}</span>
+
+      {/* Мөр доторх токенууд. 'plain' бол өнгөгүй энгийн текст. */}
+      <span className="code-text">
+        {tokens.map((token, tokenIndex) =>
+          token.type === 'plain' ? (
+            token.text
+          ) : (
+            // className нь токены төрлөөс хамаарна: .tok-comment, .tok-string ...
+            <span className={`tok-${token.type}`} key={tokenIndex}>
+              {token.text}
+            </span>
+          )
+        )}
+      </span>
+    </span>
+  ))
+}
+
 // props:
 //   fileName   — толгойд харуулах файлын нэр (жишээ нь '01-Counter.jsx'),
 //   code       — ЭХ код (App.jsx-ээс import.meta.glob-оор авсан текст),
@@ -163,6 +192,10 @@ export default function CodeBlock({ fileName, code, editedCode, onRun, onReset }
   // байхгүй үед draft нь эх кодтой тэнцүү тул ялгаа гарахгүй.
   const lines = prepare(draft)
 
+  // Засварлагчийн доод давхаргын мөрүүд: хэрэглэгч төгсгөлд нь шинэ мөр нэмэхэд
+  // тэр хоосон мөр нэмэгдэнэ (курсор тэр мөрөнд байрладаг тул).
+  const editorRows = draft.endsWith('\n') ? [...lines, []] : lines
+
   // Толгойн шошго: засварлах горим / засвартай харагдац / эх код.
   const modeLabel = editing ? 'Засварлагч' : draft === code ? 'Эх код' : 'Засвар'
 
@@ -173,6 +206,15 @@ export default function CodeBlock({ fileName, code, editedCode, onRun, onReset }
     await navigator.clipboard.writeText(draft)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1500)
+  }
+
+  // Засварлагчийн гүйлгэлтийг доод (өнгөтэй) давхаргад дамжуулна — текст
+  // хайрцгийг гүйлгэхэд доорх өнгөтэй код зэрэг хөдөлнө.
+  // (event.currentTarget.previousElementSibling нь <pre> элемент.)
+  function handleEditorScroll(event) {
+    const view = event.currentTarget.previousElementSibling
+    view.scrollTop = event.currentTarget.scrollTop
+    view.scrollLeft = event.currentTarget.scrollLeft
   }
 
   // Буцаах: засварлагчийн текстийг эх код руу буцааж, App-д засвараа устгуулна
@@ -213,20 +255,33 @@ export default function CodeBlock({ fileName, code, editedCode, onRun, onReset }
       </div>
 
       {/* && — showCode true үед л дүрслэнэ (нөхцөлт дүрслэлийн нэг арга).
-          Дотор нь мөн нөхцөлт дүрслэл: editing true үед текст засварлагч,
-          false үед өнгөтэй код. */}
+          Дотор нь мөн нөхцөлт дүрслэл: editing true үед засварлагч,
+          false үед зөвхөн өнгөтэй код. */}
       {showCode &&
         (editing ? (
           <>
-            {/* Контролтой оролт: value + onChange (3-р дасгалын зарчим). */}
-            <textarea
-              className="code-editor"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              spellCheck={false} // монгол үгэн дээр улаан зураас гарахгүй
-              wrap="off" // мөрийг доош шилжүүлэхгүй — кодын хэлбэр хэвээр
-              aria-label={`${fileName} файлын эх код — засварлах`}
-            />
+            {/* ЗАСВАРЛАХ ХАРАГДАЦ — 2 давхарга:
+                  доод .code-editor-view — өнгөтэй код (зөвхөн харагдана),
+                  дээд .code-editor      — жинхэнэ текст хайрцаг. Дээд давхаргын
+                үсэг нь ТУНГАЛАГ (color: transparent) тул доорх өнгө л харагдана,
+                харин курсор, сонголт, бичих ажиллагаа хэвийн үлдэнэ. */}
+            <div className="code-editor-wrap">
+              <pre className="code-editor-view" aria-hidden="true">
+                {renderLines(editorRows)}
+              </pre>
+
+              {/* Контролтой оролт: value + onChange (төлөв нь эх сурвалж). */}
+              <textarea
+                className="code-editor"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                // Гүйлгэхэд доорх өнгөтэй давхарга зэрэг хөдөлнө.
+                onScroll={handleEditorScroll}
+                spellCheck={false} // монгол үгэн дээр улаан зураас гарахгүй
+                wrap="off" // мөрийг доош шилжүүлэхгүй — кодын хэлбэр хэвээр
+                aria-label={`${fileName} файлын эх код — засварлах`}
+              />
+            </div>
 
             <p className="code-hint">
               Засвар хийгээд <strong>0.6 секунд</strong> хүлээгээрэй — дээрх жишээ
@@ -235,29 +290,7 @@ export default function CodeBlock({ fileName, code, editedCode, onRun, onReset }
             </p>
           </>
         ) : (
-          <pre className="code">
-            {lines.map((tokens, lineIndex) => (
-              // key — мөрийн дугаар давтагдашгүй тул түүнийг ашиглана.
-              <span className="code-line" key={lineIndex}>
-                {/* Мөрийн дугаар (хуулах үед орохгүй — CSS-д user-select: none). */}
-                <span className="code-num">{lineIndex + 1}</span>
-
-                {/* Мөр доторх токенууд. 'plain' бол өнгөгүй энгийн текст. */}
-                <span className="code-text">
-                  {tokens.map((token, tokenIndex) =>
-                    token.type === 'plain' ? (
-                      token.text
-                    ) : (
-                      // className нь токены төрлөөс хамаарна: .tok-comment, .tok-string ...
-                      <span className={`tok-${token.type}`} key={tokenIndex}>
-                        {token.text}
-                      </span>
-                    )
-                  )}
-                </span>
-              </span>
-            ))}
-          </pre>
+          <pre className="code">{renderLines(lines)}</pre>
         ))}
     </section>
   )

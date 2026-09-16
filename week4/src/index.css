@@ -223,6 +223,17 @@ ul {
 /* Энэ хэсэг болон доорх "Амьд засвар" хэсэг долоо хоног бүрийн төсөлд ижил байна —
    "эх код харах" ба "код засаж, DOM-оо шууд өөрчлөх" 2 чадварыг хангана. */
 
+/* Программын ЛИГАТУРЫГ унтраана: Cascadia Code фонт дээр '!==' гэсэн 3 тэмдэгт
+   нэг хэвээр (≠ шиг) нийлж харагддаг — ингэснээр эх кодтой ЯГ ижил харагдана. */
+.code,
+.code-file,
+.code-editor,
+.code-editor-view,
+.live-error pre {
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+}
+
 /* .code-block — дасгалын доор гардаг бараан "код хайрцаг". */
 .code-block {
   margin-top: 16px;
@@ -280,6 +291,7 @@ ul {
   font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
   font-size: 12.5px;
   line-height: 1.6;
+  tab-size: 2;
   color: #d4d4d4;
 }
 
@@ -334,18 +346,45 @@ ul {
   color: #d4d4d4; /* => */
 }
 
-/* .code-editor — "Засварлах" горимд гардаг текст хайрцаг (textarea). */
+/* .code-editor-wrap — засварлах харагдацын 2 давхаргыг багтаах хайрцаг. */
+.code-editor-wrap {
+  position: relative;
+  background: var(--code-bg);
+}
+
+/* .code-editor-view — ДООД давхарга: өнгөтэй код (зөвхөн харагдана).
+   Метрик нь дээд давхаргын текст хайрцагтай ЯГ ИЖИЛ байх ёстой. */
+.code-editor-view {
+  position: absolute;
+  inset: 0; /* хайрцгийг бүтнээр эзэлнэ */
+  margin: 0;
+  padding: 12px 0; /* дээд давхаргатай ижил */
+  overflow: hidden; /* гүйлгэлтийг текст хайрцагнаас авна */
+  font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  tab-size: 2;
+  color: #d4d4d4;
+  pointer-events: none; /* хулганы үйлдлийг дээд давхаргад үлдээнэ */
+}
+
+/* .code-editor — "Засварлах" горимд гардаг текст хайрцаг (textarea).
+   Энэ нь 2 давхаргын ДЭЭД давхарга: үсэг нь тунгалаг тул доорх өнгөтэй
+   давхарга (.code-editor-view) харагдана, харин курсор, сонголт, бичих
+   ажиллагаа хэвийн үлдэнэ. */
 .code-editor {
+  position: relative; /* доод давхаргын дээгүүр байрлана */
   display: block;
   width: 100%;
   min-height: 320px;
   max-height: 520px;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 50px; /* зүүн зай = мөрийн дугаарын багана (38 + 12) */
   border: 0; /* хайрцаг дотроо байгаа тул тусдаа хүрээ хэрэггүй */
   border-radius: 0;
   resize: vertical; /* доод ирмэгээр чирж өндрийг өөрчилж болно */
-  background: var(--code-bg);
-  color: #d4d4d4;
+  background: transparent; /* доод давхарга харагдах ёстой */
+  color: transparent; /* үсгийг нууна — өнгийг доод давхарга харуулна */
+  caret-color: #e8e8e8; /* курсор харагдсаар байна */
   font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
   font-size: 12.5px;
   line-height: 1.6;
